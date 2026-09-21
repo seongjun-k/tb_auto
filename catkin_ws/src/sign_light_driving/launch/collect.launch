@@ -1,0 +1,11 @@
+<launch>
+  <!-- 데이터 수집. 노트북에서 실행한다.
+       카메라는 로봇의 /camera/image, 화면과 저장은 노트북. -->
+  <arg name="topic"    default="/camera/image"/>
+  <arg name="save_dir" default="$(env HOME)/tb_auto/dataset_raw"/>
+
+  <node pkg="sign_light_driving" type="collector_node.py" name="collector" output="screen" required="true">
+    <param name="topic"    value="$(arg topic)"/>
+    <param name="save_dir" value="$(arg save_dir)"/>
+  </node>
+</launch>

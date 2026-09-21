@@ -1,0 +1,26 @@
+<annotation>
+	<folder>red_light</folder>
+	<filename>red_light_20260921_100450_005.jpg</filename>
+	<path>/home/ros30401/tb_auto/dataset_raw/red_light/red_light_20260921_100450_005.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>320</width>
+		<height>240</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>red_light</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>149</xmin>
+			<ymin>58</ymin>
+			<xmax>212</xmax>
+			<ymax>163</ymax>
+		</bndbox>
+	</object>
+</annotation>

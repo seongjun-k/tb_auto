@@ -1,0 +1,4 @@
+left_turn
+right_turn
+red_light
+green_light

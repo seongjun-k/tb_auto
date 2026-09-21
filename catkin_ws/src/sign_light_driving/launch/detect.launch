@@ -1,0 +1,15 @@
+<launch>
+  <!-- 인식(추론). 노트북에서 실행한다. GPU가 없어도 320px에서 29fps 나온다. -->
+  <arg name="model" default="$(env HOME)/tb_auto/runs/detect/runs/train/weights/best.pt"/>
+  <arg name="topic" default="/camera/image"/>
+  <arg name="imgsz" default="320"/>
+  <arg name="conf"  default="0.25"/>
+
+  <node pkg="sign_light_driving" type="detector_node.py" name="detector" output="screen" required="true">
+    <param name="model" value="$(arg model)"/>
+    <param name="topic" value="$(arg topic)"/>
+    <param name="imgsz" value="$(arg imgsz)"/>
+    <param name="conf"  value="$(arg conf)"/>
+    <remap from="detections" to="/sign_light/detections"/>
+  </node>
+</launch>

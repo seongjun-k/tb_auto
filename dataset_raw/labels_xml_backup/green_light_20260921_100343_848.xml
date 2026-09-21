@@ -1,0 +1,26 @@
+<annotation>
+	<folder>green_light</folder>
+	<filename>green_light_20260921_100343_848.jpg</filename>
+	<path>/home/ros30401/tb_auto/dataset_raw/green_light/green_light_20260921_100343_848.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>320</width>
+		<height>240</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>green_light</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>130</xmin>
+			<ymin>62</ymin>
+			<xmax>190</xmax>
+			<ymax>158</ymax>
+		</bndbox>
+	</object>
+</annotation>

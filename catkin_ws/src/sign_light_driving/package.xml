@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sign_light_driving</name>
+  <version>0.1.0</version>
+  <description>
+    터틀봇 카메라로 표지판(좌/우회전)과 신호등(적/녹)을 YOLO로 인식하고
+    그 결과로 cmd_vel을 생성해 자율주행하는 패키지.
+  </description>
+  <maintainer email="rkdsungjun3344@gmail.com">ksj</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <!-- find_package()에 들어가는 것들은 build/exec 양쪽이 필요하다 -> depend -->
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>cv_bridge</depend>
+</package>

@@ -1,0 +1,25 @@
+<launch>
+  <!-- 주행 제어. 터틀봇에서 실행한다. 인식 결과를 받아 cmd_vel을 만든다.
+       torch 불필요 - 순수 파이썬 상태머신이라 RPi4에서 가볍다. -->
+  <arg name="conf"        default="0.6"/>
+  <arg name="light_ratio" default="0.15"/>
+  <arg name="turn_ratio"  default="0.30"/>
+  <arg name="debounce"    default="3"/>
+  <arg name="speed"       default="0.1"/>
+  <arg name="turn_z"      default="0.5"/>
+  <arg name="turn_time"   default="3.1"/>
+  <!-- 인식 결과가 이 시간 이상 끊기면 로봇이 스스로 정지. 무선이 끊겨도 확실히 선다. -->
+  <arg name="watchdog"    default="0.5"/>
+
+  <node pkg="sign_light_driving" type="controller_node.py" name="controller" output="screen" required="true">
+    <param name="conf"        value="$(arg conf)"/>
+    <param name="light_ratio" value="$(arg light_ratio)"/>
+    <param name="turn_ratio"  value="$(arg turn_ratio)"/>
+    <param name="debounce"    value="$(arg debounce)"/>
+    <param name="speed"       value="$(arg speed)"/>
+    <param name="turn_z"      value="$(arg turn_z)"/>
+    <param name="turn_time"   value="$(arg turn_time)"/>
+    <param name="watchdog"    value="$(arg watchdog)"/>
+    <remap from="detections" to="/sign_light/detections"/>
+  </node>
+</launch>
