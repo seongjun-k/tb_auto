@@ -7,7 +7,8 @@
   <arg name="debounce"    default="3"/>
   <arg name="speed"       default="0.1"/>
   <arg name="turn_z"      default="0.5"/>
-  <arg name="turn_time"   default="3.1"/>
+  <!-- 좌/우회전은 항상 이 각도(라디안, 기본 90도)만큼 회전한다 -->
+  <arg name="turn_angle"  default="1.5707963"/>
   <!-- 인식 결과가 이 시간 이상 끊기면 로봇이 스스로 정지. 무선이 끊겨도 확실히 선다. -->
   <arg name="watchdog"    default="0.5"/>
 
@@ -18,7 +19,7 @@
     <param name="debounce"    value="$(arg debounce)"/>
     <param name="speed"       value="$(arg speed)"/>
     <param name="turn_z"      value="$(arg turn_z)"/>
-    <param name="turn_time"   value="$(arg turn_time)"/>
+    <param name="turn_angle"  value="$(arg turn_angle)"/>
     <param name="watchdog"    value="$(arg watchdog)"/>
     <remap from="detections" to="/sign_light/detections"/>
   </node>

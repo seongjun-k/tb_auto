@@ -8,6 +8,7 @@ torch/ultralytics가 필요 없는 순수 로직이라 RPi4에서도 가볍게 �
 
 로직만 검증:  rosrun sign_light_driving controller_node.py --selftest
 """
+import math
 import sys
 
 CLASSES = ["left_turn", "right_turn", "red_light", "green_light"]
@@ -21,14 +22,16 @@ class Controller:
     """
 
     def __init__(self, conf=0.6, light_ratio=0.15, turn_ratio=0.30, debounce=3,
-                 speed=0.1, turn_z=0.5, turn_time=3.1, sign_cooldown=2.0):
+                 speed=0.1, turn_z=0.5, turn_angle=math.pi / 2, sign_cooldown=2.0):
         self.conf = conf
         self.ratio = {"red_light": light_ratio, "green_light": light_ratio,
                       "left_turn": turn_ratio, "right_turn": turn_ratio}
         self.debounce = debounce
         self.speed = speed
         self.turn_z = turn_z
-        self.turn_time = turn_time
+        # ponytail: 오도메트리/IMU 피드백 없이 시간 적분으로 각도를 맞추는 열린루프 방식.
+        # 바퀴 슬립 등으로 오차가 누적되면 실제 yaw 피드백(오도메트리) 기반 회전으로 교체.
+        self.turn_time = turn_angle / turn_z
         self.sign_cooldown = sign_cooldown
 
         self.stopped = False
@@ -126,54 +129,12 @@ def selftest():
     assert feed(c, left, 3, t0=5.1) == (0.1, 0.0)
     assert feed(c, left, 3, t0=7.1) == (0.0, 0.5)
 
-    print("selftest ok")
-
-
-
-def selftest():
-
-    def feed(c, dets, n, t0=0.0, dt=0.1):
-        out = None
-        for i in range(n):
-            out = c.step(dets, t0 + i * dt)
-        return out
-
-    red = [("red_light", 0.9, 0.2)]
-    green = [("green_light", 0.9, 0.2)]
-    left = [("left_turn", 0.9, 0.4)]
-
-    # 아무것도 없으면 기본 직진
-    c = Controller()
-    assert c.step([], 0.0) == (0.1, 0.0)
-
-    # 디바운스: 2프레임까지는 발동 안 함, 3프레임째 정지
-    c = Controller()
-    assert feed(c, red, 2) == (0.1, 0.0)
-    assert c.step(red, 0.3) == (0.0, 0.0)
-
-    # 낮은 conf / 먼 거리(작은 bbox)는 무시
-    c = Controller()
-    assert feed(c, [("red_light", 0.5, 0.2)], 5) == (0.1, 0.0)
-    assert feed(c, [("red_light", 0.9, 0.1)], 5) == (0.1, 0.0)
-
-    # 연속이 끊기면 스트릭 리셋
-    c = Controller()
-    feed(c, red, 2)
-    c.step([], 0.3)
-    assert c.step(red, 0.4) == (0.1, 0.0)
-
-    # 정지 상태는 검출이 사라져도 유지, green 3프레임이면 재출발
-    c = Controller()
-    feed(c, red, 3)
-    assert c.step([], 0.4) == (0.0, 0.0)
-    assert feed(c, green, 3, t0=0.5) == (0.1, 0.0)
-
-    # 좌회전: 즉시 회전 시작, turn_time 동안 유지, 이후 직진 복귀
+    # 좌회전: 즉시 회전 시작, 90도(turn_angle/turn_z)만큼 유지, 이후 직진 복귀
     c = Controller()
     assert feed(c, left, 3) == (0.0, 0.5)
     assert c.step([], 1.0) == (0.0, 0.5)        # 회전 중 무시
     assert c.step(red, 2.0) == (0.0, 0.5)       # 빨간불도 무시 (락)
-    assert c.step([], 5.5) == (0.1, 0.0)        # 0.2+3.1=3.3 경과
+    assert c.step([], 5.5) == (0.1, 0.0)        # 0.2+pi≈3.34 경과, 이후 신호 없으면 직진
 
     # 우회전은 반대 방향
     c = Controller()
@@ -182,9 +143,14 @@ def selftest():
     # 회전 직후 쿨다운: 같은 표지판이 남아 있어도 다시 돌지 않음
     c = Controller()
     feed(c, left, 3)
-    c.step([], 5.0)                              # 회전 종료 -> 쿨다운 7.0까지
+    c.step([], 5.0)                              # 회전 종료 -> 쿨다운 5.34초 후까지
     assert feed(c, left, 3, t0=5.1) == (0.1, 0.0)
     assert feed(c, left, 3, t0=7.1) == (0.0, 0.5)
+
+    # 회전 종료 후에는 신호등 신호에 따라 동작(정지)
+    c = Controller()
+    feed(c, left, 3)
+    assert feed(c, red, 3, t0=3.5) == (0.0, 0.0)
 
     print("selftest ok")
 
@@ -203,7 +169,7 @@ def main():
         debounce=rospy.get_param("~debounce", 3),
         speed=rospy.get_param("~speed", 0.1),
         turn_z=rospy.get_param("~turn_z", 0.5),
-        turn_time=rospy.get_param("~turn_time", 3.1),
+        turn_angle=rospy.get_param("~turn_angle", math.pi / 2),
     )
 
     pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
