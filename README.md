@@ -52,14 +52,14 @@ echo 'source ~/tb_auto/catkin_ws/devel/setup.bash' >> ~/.bashrc
 
 ## 실행 순서
 
-**1. 로봇 띄우기** (`ssh ubuntu@100.88.31.34`, 터미널 2개).
+**1. 로봇 띄우기** (`ssh ubuntu@<터틀봇IP>`, 터미널 2개).
 `ROS_IP`는 로봇에도 반드시 export 해야 한다:
 ```bash
-export ROS_IP=100.88.31.34
+export ROS_IP=<터틀봇IP>
 roslaunch aicon_bringup aicon_robot.launch
 ```
 ```bash
-export ROS_IP=100.88.31.34
+export ROS_IP=<터틀봇IP>
 roslaunch aicon_bringup aicon_camera.launch      # /camera/image, 320x240@30
 ```
 
@@ -67,9 +67,11 @@ roslaunch aicon_bringup aicon_camera.launch      # /camera/image, 320x240@30
 ```bash
 source /opt/ros/noetic/setup.bash
 source ~/tb_auto/catkin_ws/devel/setup.bash
-export ROS_MASTER_URI=http://100.88.31.34:11311
-export ROS_IP=100.76.204.28                      # 노트북 tailscale IP
+export ROS_MASTER_URI=http://<터틀봇IP>:11311
+export ROS_IP=<노트북IP>
 ```
+로봇과 노트북이 서로 통신 가능한 같은 네트워크(무선 공유기, VPN 등 무엇이든)에
+있어야 하고, 각 IP는 해당 기기에서 `hostname -I` 등으로 확인한다.
 최초 1회 설치: `pip install ultralytics labelImg` (torch는 CPU판으로 딸려옴).
 
 **3. 수집** (노트북, 이미지가 바로 로컬에 쌓여 scp 불필요):
@@ -123,7 +125,7 @@ rosrun sign_light_driving controller_node.py --selftest
 **`ROS_IP`는 노트북뿐 아니라 로봇에도 걸어야 한다.** 안 걸면 로봇 노드가
 자기 주소를 `http://ubuntu:<port>/`로 광고하는데, 노트북이 `ubuntu`를
 이름풀이하지 못해서 **`rostopic list`엔 토픽이 보여도 메시지는 한 장도
-안 들어온다.** 로봇에 `ROS_IP=100.88.31.34`를 걸면 IP로 광고해서 바로
+안 들어온다.** 로봇에 `ROS_IP=<터틀봇IP>`를 걸면 IP로 광고해서 바로
 붙는다.
 
 카메라 bringup이 `cv camera open failed: device_id 0`로 죽으면 이전
