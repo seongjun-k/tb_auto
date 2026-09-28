@@ -8,6 +8,7 @@ cmd_vel은 만들지 않는다 - 그건 로봇의 controller_node 몫.
 """
 import os
 
+import numpy as np
 import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -31,7 +32,6 @@ def main():
 
     # 첫 추론은 워밍업 때문에 수백 ms 걸린다. 미리 한 번 돌려서
     # 주행 시작 직후 controller 워치독이 헛발동하는 것을 막는다.
-    import numpy as np
     model.predict(np.zeros((240, 320, 3), np.uint8), imgsz=imgsz, verbose=False)
 
     def on_image(msg):

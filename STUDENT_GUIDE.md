@@ -186,6 +186,7 @@ cmd_vel은 만들지 않는다 - 그건 로봇의 controller_node 몫.
 """
 import os
 
+import numpy as np
 import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -209,7 +210,6 @@ def main():
 
     # 첫 추론은 워밍업 때문에 수백 ms 걸린다. 미리 한 번 돌려서
     # 주행 시작 직후 controller 워치독이 헛발동하는 것을 막는다.
-    import numpy as np
     model.predict(np.zeros((240, 320, 3), np.uint8), imgsz=imgsz, verbose=False)
 
     def on_image(msg):
@@ -326,6 +326,32 @@ class Controller:
         return (0.0, 0.0) if self.stopped else (self.speed, 0.0)
 
 
+def selftest():
+    """ROS 없이 상태머신 로직만 검증. rosrun ... --selftest 로 실행."""
+    def feed(c, dets, n, t0=0.0, dt=0.1):
+        out = None
+        for i in range(n):
+            out = c.step(dets, t0 + i * dt)
+        return out
+
+    red = [("red_light", 0.9, 0.2)]
+    green = [("green_light", 0.9, 0.2)]
+    left = [("left_turn", 0.9, 0.4)]
+
+    # 시작은 정지 상태. 초록불을 봐야 출발
+    c = Controller()
+    assert c.step([], 0.0) == (0.0, 0.0)
+    assert feed(c, green, 3, t0=0.1) == (0.1, 0.0)
+
+    # 빨간불 -> 정지, 좌회전은 신호와 무관하게 즉시 90도 회전 후 직진 복귀
+    c = Controller()
+    assert feed(c, left, 3) == (0.0, 0.5)
+    assert c.step([], 1.0) == (0.0, 0.5)          # 회전 중 무시
+    assert c.step([], 5.5) == (0.1, 0.0)          # 회전(pi/0.5초) 끝나면 직진
+
+    print("selftest ok")
+
+
 def main():
     import rospy
     from geometry_msgs.msg import Twist
@@ -371,7 +397,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if "--selftest" in sys.argv:
+        selftest()
+    else:
+        main()
 ```
 
 ### 3) 실행 권한 부여 (필수)
@@ -560,6 +589,8 @@ yolo detect train model=yolov8n.pt data=dataset/data.yaml \
   epochs=100 imgsz=320 batch=16 patience=20 device=cpu workers=8
 ```
 `imgsz=320`은 카메라 원본 해상도와 동일합니다. 결과: `runs/detect/train/weights/best.pt`
+직접 학습이 어렵다면 학습된 체크포인트(mAP50 0.995)를 GitHub Release에서 바로 받을 수 있습니다:
+https://github.com/seongjun-k/tb_auto/releases/tag/v1.0-model
 
 ---
 

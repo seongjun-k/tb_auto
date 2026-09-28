@@ -104,6 +104,8 @@ yolo detect train model=yolov8n.pt data=dataset/data.yaml \
 ```
 `imgsz=320`은 카메라 원본 해상도와 일치시킨 값이다. 640은 정보량 증가
 없이 업스케일만 하는 셈이라 손해. 결과: `runs/detect/train/weights/best.pt`.
+학습된 체크포인트(mAP50 0.995)는 GitHub Release로도 올려뒀다 — 처음부터 다시
+학습할 필요 없이 바로 받아 쓸 수 있다: https://github.com/seongjun-k/tb_auto/releases/tag/v1.0-model
 
 **7. 주행**:
 ```bash
