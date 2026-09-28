@@ -110,10 +110,11 @@ upscale with no extra information. Output: `runs/detect/train/weights/best.pt`.
 roslaunch sign_light_driving detect.launch model:=<path to best.pt>   # laptop
 roslaunch sign_light_driving control.launch                           # robot
 ```
-Behavior: nothing detected -> drive straight / `red_light` -> stop /
-`green_light` -> resume / `left_turn`, `right_turn` -> rotate in place by
-`turn_angle`, then resume straight (new detections ignored while turning,
-plus a cooldown afterward so the same sign can't retrigger the turn).
+Behavior: starts stopped (must see `green_light` before moving at all) /
+`red_light` -> stop / `green_light` -> resume / `left_turn`, `right_turn` ->
+rotate in place by `turn_angle` regardless of light state, then resume
+straight (new detections ignored while turning, plus a cooldown afterward so
+the same sign can't retrigger the turn).
 
 Verify the control logic alone, no ROS needed:
 ```bash

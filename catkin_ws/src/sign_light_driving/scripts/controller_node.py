@@ -34,7 +34,7 @@ class Controller:
         self.turn_time = turn_angle / turn_z
         self.sign_cooldown = sign_cooldown
 
-        self.stopped = False
+        self.stopped = True  # 초록불을 봐야 출발. 빨간불/미검출 상태로 시작
         self.turn_until = None
         self.turn_dir = 0
         self.ignore_signs_until = 0.0
@@ -85,51 +85,38 @@ def selftest():
     green = [("green_light", 0.9, 0.2)]
     left = [("left_turn", 0.9, 0.4)]
 
-    # 아무것도 없으면 기본 직진
+    # 아무것도 없으면 정지 상태로 시작 (초록불을 봐야 출발)
     c = Controller()
-    assert c.step([], 0.0) == (0.1, 0.0)
+    assert c.step([], 0.0) == (0.0, 0.0)
+    assert feed(c, green, 3, t0=0.1) == (0.1, 0.0)
 
     # 디바운스: 2프레임까지는 발동 안 함, 3프레임째 정지
     c = Controller()
-    assert feed(c, red, 2) == (0.1, 0.0)
-    assert c.step(red, 0.3) == (0.0, 0.0)
+    feed(c, green, 3)
+    assert feed(c, red, 2, t0=0.4) == (0.1, 0.0)
+    assert c.step(red, 0.7) == (0.0, 0.0)
 
     # 낮은 conf / 먼 거리(작은 bbox)는 무시
     c = Controller()
-    assert feed(c, [("red_light", 0.5, 0.2)], 5) == (0.1, 0.0)
-    assert feed(c, [("red_light", 0.9, 0.1)], 5) == (0.1, 0.0)
+    feed(c, green, 3)
+    assert feed(c, [("red_light", 0.5, 0.2)], 5, t0=0.4) == (0.1, 0.0)
+    assert feed(c, [("red_light", 0.9, 0.1)], 5, t0=1.0) == (0.1, 0.0)
 
     # 연속이 끊기면 스트릭 리셋
     c = Controller()
-    feed(c, red, 2)
-    c.step([], 0.3)
-    assert c.step(red, 0.4) == (0.1, 0.0)
+    feed(c, green, 3)
+    feed(c, red, 2, t0=0.4)
+    c.step([], 0.7)
+    assert c.step(red, 0.8) == (0.1, 0.0)
 
     # 정지 상태는 검출이 사라져도 유지, green 3프레임이면 재출발
     c = Controller()
-    feed(c, red, 3)
-    assert c.step([], 0.4) == (0.0, 0.0)
-    assert feed(c, green, 3, t0=0.5) == (0.1, 0.0)
+    feed(c, green, 3)
+    feed(c, red, 3, t0=0.4)
+    assert c.step([], 0.8) == (0.0, 0.0)
+    assert feed(c, green, 3, t0=0.9) == (0.1, 0.0)
 
-    # 좌회전: 즉시 회전 시작, turn_time 동안 유지, 이후 직진 복귀
-    c = Controller()
-    assert feed(c, left, 3) == (0.0, 0.5)
-    assert c.step([], 1.0) == (0.0, 0.5)        # 회전 중 무시
-    assert c.step(red, 2.0) == (0.0, 0.5)       # 빨간불도 무시 (락)
-    assert c.step([], 5.5) == (0.1, 0.0)        # 0.2+3.1=3.3 경과
-
-    # 우회전은 반대 방향
-    c = Controller()
-    assert feed(c, [("right_turn", 0.9, 0.4)], 3) == (0.0, -0.5)
-
-    # 회전 직후 쿨다운: 같은 표지판이 남아 있어도 다시 돌지 않음
-    c = Controller()
-    feed(c, left, 3)
-    c.step([], 5.0)                              # 회전 종료 -> 쿨다운 7.0까지
-    assert feed(c, left, 3, t0=5.1) == (0.1, 0.0)
-    assert feed(c, left, 3, t0=7.1) == (0.0, 0.5)
-
-    # 좌회전: 즉시 회전 시작, 90도(turn_angle/turn_z)만큼 유지, 이후 직진 복귀
+    # 좌회전: 출발 신호(green) 없이도 즉시 회전 시작, 90도(turn_angle/turn_z)만큼 유지, 이후 직진 복귀
     c = Controller()
     assert feed(c, left, 3) == (0.0, 0.5)
     assert c.step([], 1.0) == (0.0, 0.5)        # 회전 중 무시
