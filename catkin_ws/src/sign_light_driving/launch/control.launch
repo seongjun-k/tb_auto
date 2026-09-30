@@ -9,6 +9,11 @@
   <arg name="turn_z"      default="0.5"/>
   <!-- 좌/우회전은 항상 이 각도(라디안, 기본 90도)만큼 회전한다 -->
   <arg name="turn_angle"  default="1.5707963"/>
+  <!-- 실제 회전이 90도에 못 미치면 키우고, 넘치면 줄이는 현장 보정값(IMU 못 잡을 때만 씀) -->
+  <arg name="turn_scale"  default="1.0"/>
+  <!-- 각속도를 끊어도 관성으로 더 도는 만큼(라디안) 목표각에서 미리 뺀다.
+       실측(turn_z=0.5): 좌회전 +5.2도, 우회전 +5.7도 오버슈트 -> 0.09rad(~5.2도) 기본값 -->
+  <arg name="turn_brake"  default="0.09"/>
   <!-- 인식 결과가 이 시간 이상 끊기면 로봇이 스스로 정지. 무선이 끊겨도 확실히 선다. -->
   <arg name="watchdog"    default="0.5"/>
 
@@ -20,6 +25,8 @@
     <param name="speed"       value="$(arg speed)"/>
     <param name="turn_z"      value="$(arg turn_z)"/>
     <param name="turn_angle"  value="$(arg turn_angle)"/>
+    <param name="turn_scale"  value="$(arg turn_scale)"/>
+    <param name="turn_brake"  value="$(arg turn_brake)"/>
     <param name="watchdog"    value="$(arg watchdog)"/>
     <remap from="detections" to="/sign_light/detections"/>
   </node>
